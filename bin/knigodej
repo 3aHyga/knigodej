@@ -1,0 +1,55 @@
+#!/usr/bin/env ruby
+#coding: utf-8
+
+require 'rdoba'
+require 'yaml'
+require 'micro-optparse'
+require 'knigodej'
+
+rdoba :mixin => [ :empty ]
+
+options = Parser.new do |p|
+   p.banner = "This is a #{Knigodej::NAME} script, how to use it see below"
+   p.version = "#{Knigodej::NAME} #{Knigodej::VERSION}"
+   p.option :verbose, "enable verbose output, values: 0 to 5",
+         :short => 'v', :default => 1, :value_in_set => ( 0..5 ).to_a
+   p.option :schema, "set bookshelf schema YAML-file to proceed",
+         :short => 's', :default => '', :value_matches => /^.+$/
+   p.option :book, "make a book specified by name",
+         :short => 'b', :default => ''
+   p.option :dir, "set base dir to store results", :short => 'd', :default => ''
+   p.option :log, "set output flow to a file", :short => 'l', :default => ''
+end.process!
+if !ARGV.empty?
+   $stderr.puts "Invalid option(s): #{ARGV.inspect}" ; exit ; end
+
+f = case options[ :verbose ]
+    when 0
+       [ :warn ]
+    when 1
+       [ :info, :warn ]
+    when 2
+       [ :info, :warn, :basic ]
+    when 3
+       [ :info, :warn, :basic, :extended ]
+    when 4
+       [ :info, :warn, :basic, :enter, :leave ]
+    when 5
+       [ :info, :warn, :basic, :extended, :enter, :leave ] ; end
+
+io = ( options[ :log ] == '-' || !options[ :email ].empty? ) &&
+   ( require 'tempfile' ; Tempfile.new( 'tmp.log' ) ) ||
+   options[ :log ].empty? && $stdout ||
+   File.open( options[ :log ], 'w+' )
+
+settings = YAML::load( open options[ :schema ] )
+
+$stdout.puts "The script is running..."
+
+rdoba :log => { :in => Knigodej::BookShelf, :as => :log,
+   :prefix => [ :timestamp ], :io => io, :functions => f }
+rdoba :log => { :in => Knigodej::Book, :as => :log, :prefix => [ :timestamp ],
+   :io => io, :functions => f }
+
+Knigodej.book settings, options[ :dir ], options[ :book ],
+      File.dirname( options[ :schema ] )

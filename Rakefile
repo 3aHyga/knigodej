@@ -1,6 +1,8 @@
+#!/usr/bin/env rake
+
 desc "Prepare bundler"
-task :prebundle do
-   sh 'gem install bundler --version "~> 1.3.1" --no-rdoc --no-ri'
+task :bundleup do
+  sh 'gem install bundler --version "~> 1.3.1" --no-ri --no-rdoc'
 end
 
 desc "Requires"
@@ -12,29 +14,46 @@ task :req do
 end
 
 desc "Prepare bundle environment"
-task :pre do
-   sh 'bundle install'
+task :up do
+  sh 'bundle install'
 end
 
-desc "Generate gem"
-task :gem do
-   sh 'gem build znamen.gemspec'
-   sh "gem install znamen-#{Znamen::VERSION}.gem"
+desc "Test with cucumber"
+task :test do
+  sh 'if [ -d features ]; then tests=$(ls features/*.feature) ; cucumber $tests; fi'
 end
 
 desc "Distilled clean"
 task :distclean do
    sh 'git clean -fd'
-   sh 'rm -rf $(find -iname "*~")'
+   sh 'cat .gitignore | while read mask; do rm -rf $(find -iname "$mask"); done'
 end
 
-task :book do
-   sh './bin/book.rb'
-end
+desc "Generate gem"
+namespace :gem do
+  task :build => [ :req ] do
+    sh 'gem build knigodej.gemspec'
+  end
 
+  task :install do
+    require File.expand_path( '../lib/knigodej/version', __FILE__ )
+    sh "gem install knigodej-#{Knigodej::VERSION}.gem"
+  end
+
+  task :publish => [ :req ] do
+    require File.expand_path( '../lib/knigodej/version', __FILE__ )
+    sh "git tag v#{Knigodej::VERSION}"
+    sh "gem push knigodej-#{Knigodej::VERSION}.gem"
+    sh "git push"
+    sh "git push --tag"
+  end
+
+  task :make => [ :build, :install, :publish ]
+  task :default => :make
+end
 
 task(:default).clear
-task :default => :pre
-task :release => [ :req ]
-task :gem => [ :req ]
-task :build => [ :prebundle, :pre, :gem ]
+task :default => :test
+task :all => [ :bundleup, :up, :test, :'gem:make', :distclean ]
+task :build => [ :bundleup, :up, :test, :'gem:build', :'gem:install', :distclean ]
+

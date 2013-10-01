@@ -21,6 +21,7 @@ Gem::Specification.new do |spec|
    spec.add_runtime_dependency 'micro-optparse'
    spec.add_runtime_dependency 'mini_magick', '~> 3.6.0'
    spec.add_runtime_dependency 'prawn'
+   spec.add_runtime_dependency 'rdoba', '>= 0.9.1'
 
    spec.add_development_dependency "bundler", "~> 1.3"
    spec.add_development_dependency "rake"

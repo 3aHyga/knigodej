@@ -1,5 +1,10 @@
 # Knigodej
 
+[![Gem Version](https://badge.fury.io/rb/knigodej.png)](http://badge.fury.io/rb/knigodej)
+[![Build Status](https://travis-ci.org/3aHyga/knigodej.png?branch=master)](https://travis-ci.org/3aHyga/knigodej)
+[![Coverage Status](https://coveralls.io/repos/3aHyga/knigodej/badge.png)](https://coveralls.io/r/3aHyga/knigodej)
+[![Endorse Count](http://api.coderwall.com/3aHyga/endorsecount.png)](http://coderwall.com/3aHyga)
+
 Knigodej gem is a tool to make a PDF, and DJVU books from the XCF (GIMP image) source images.
 Now, only two or many layered XCF images are allowed.
 

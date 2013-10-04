@@ -42,8 +42,8 @@ namespace :gem do
 
   task :publish => [ :req ] do
     require File.expand_path( '../lib/knigodej/version', __FILE__ )
-    sh "git tag v#{Knigodej::VERSION}"
     sh "gem push knigodej-#{Knigodej::VERSION}.gem"
+    sh "git tag v#{Knigodej::VERSION}"
     sh "git push"
     sh "git push --tag"
   end

@@ -45,20 +45,15 @@ module Knigodej
                      :Producer => "Prawn",
                      :CreationDate => Time.now } )
 
-            pdf.text "Суточный круг богослужения. Знаменный роспев",
-                  :size => 18, :align => :center
-      #   pdf.bounding_box( [0, pdf.cursor], :width => 2384, :height => 3371 ) do
                pdf.fill_color "dcd1bf"
-               pdf.fill_polygon [ 0, 0 ], [ 2383, 0 ], [ 2383, 3370 ], [ 0, 3370 ]
-      #   end
-            pdf.text "Суточный круг богослужения. Знаменный роспев",
-                  :size => 18, :align => :center ; end
+               pdf.fill_polygon [ 0, 0 ], [ 2383, 0 ], [ 2383, 3370 ],
+                     [ 0, 3370 ] ; end
       
          Dir.mktmpdir do |tmpdir|
             log >> { tmpdir: tmpdir }
             @pages.each_index do |i|
                xcf = @pages[ i ]
-               log > { file: xcf }
+               log * { 'Processing file' => xcf }
          
                # 2512x3552 image size
                
@@ -80,7 +75,7 @@ module Knigodej
                      if File.exist?( djvufn )
                         `djvm -c '#{djvufn}' '#{djvufn}' '#{outfn}'`
                      else
-                        p `djvm -c '#{djvufn}' '#{outfn}'` ; end ; end
+                        `djvm -c '#{djvufn}' '#{outfn}'` ; end ; end
          
                   if ispdf
                      # Generating the PDF
@@ -99,7 +94,6 @@ module Knigodej
                         pdf.image pngfn, :fit => [2384, 3371] #TODO hardcoded remove
                         end ; end
          
-#                  FileUtils.rm_f [ tmpfn, pngfn ]
                rescue
                   log.e ; end ; end
             

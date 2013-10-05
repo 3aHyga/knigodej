@@ -12,12 +12,13 @@ module Knigodej
       rdoba :log => { :functions => :basic }
       rdoba :mixin => [ :to_h ]
 
-      attr_accessor :authors, :creator, :keywords, :subject
-      
-      attr_reader :pages, :name
+      attr_accessor :subject, :creator
+      attr_reader :authors, :keywords, :pages, :name
 
       def make options = {}
          log + { options: options }
+         log * { 'Making a book' => @name }
+
          pdffn = options[ :pdf ]
          djvufn = options[ :djvu ]
          if !pdffn && !djvufn
@@ -39,12 +40,13 @@ module Knigodej
                   :info => {
                      :Title => @name,
                      :Author => @authors.join( ',' ),
-                     :Subject => @creator,
+                     :Subject => @subject,
                      :Keywords => @keywords.join( ',' ),
                      :Creator => @subject,
                      :Producer => "Prawn",
                      :CreationDate => Time.now } )
 
+               # TODO add drawing title, authors, subject, and creator
                pdf.fill_color "dcd1bf"
                pdf.fill_polygon [ 0, 0 ], [ 2383, 0 ], [ 2383, 3370 ],
                      [ 0, 3370 ] ; end
@@ -53,7 +55,7 @@ module Knigodej
             log >> { tmpdir: tmpdir }
             @pages.each_index do |i|
                xcf = @pages[ i ]
-               log * { 'Processing file' => xcf }
+               log * { 'Processing page' => xcf }
          
                # 2512x3552 image size
                
@@ -114,7 +116,26 @@ module Knigodej
             end
 =end
          log - {} ; end
-      
+
+      def authors= authors
+         @authors = to_a authors ; end
+
+      def keywords= keywords
+         @keywords = to_a keywords ; end
+
+   private
+
+      def to_a value
+         new = case value
+                     when NilClass
+                        []
+                     when String
+                        value.split(',').map {|s| s.strip }
+                     when Array
+                        value
+                     else
+                        value.to_a
+                        end ; end
 
       def initialize name, b, path, sets
          log + { b: b, path: path, sets: sets }
@@ -124,9 +145,9 @@ module Knigodej
             return ; end
 
          @name = name
-         @authors = b[ 'авторы' ]
+         self.authors = b[ 'авторы' ]
+         self.keywords = b[ 'ключевые слова' ]
          @creator = b[ 'создатель' ]
-         @keywords = b[ 'ключевые слова' ]
          @subject = b[ 'предмет' ]
 
          (set, chapter, section) = [ nil, nil, nil ]
@@ -184,7 +205,8 @@ module Knigodej
       def make dir, specbook = nil
          log + { dir: dir, specbook: specbook }
 
-         books = specbook && @books.select {|b| b.name == specbook } || @books
+         books = specbook.empty? && @books ||
+               @books.select {|b| b.name == specbook }
          if dir.empty?
             dir = './' ; end
          books.each do |book|

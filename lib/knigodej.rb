@@ -32,7 +32,7 @@ module Knigodej
 
          if isdjvu
             FileUtils.rm_f djvufn ; end
-   
+
          if ispdf
             pdf = Prawn::Document.new(
                   :page_size => "A0", #TODO analyze
@@ -50,20 +50,20 @@ module Knigodej
                pdf.fill_color "dcd1bf"
                pdf.fill_polygon [ 0, 0 ], [ 2383, 0 ], [ 2383, 3370 ],
                      [ 0, 3370 ] ; end
-      
+
          Dir.mktmpdir do |tmpdir|
             log >> { tmpdir: tmpdir }
             @pages.each_index do |i|
                xcf = @pages[ i ]
                log * { 'Processing page' => xcf }
-         
+
                # 2512x3552 image size
-               
+
                tmpfn = File.join tmpdir, 'output.ppm'
                begin
                   xcf_image = MiniMagick::Image.open xcf
                   bg_image = MiniMagick::Image.new tmpfn
-         
+
                   command = MiniMagick::CommandBuilder.new 'convert -background'
                   command.push 'rgb(221,209,191)' #TODO make it changeable
                   command.push '-flatten'
@@ -78,27 +78,27 @@ module Knigodej
                         `djvm -c '#{djvufn}' '#{djvufn}' '#{outfn}'`
                      else
                         `djvm -c '#{djvufn}' '#{outfn}'` ; end ; end
-         
+
                   if ispdf
                      # Generating the PDF
                      tmp_image = MiniMagick::Image.open tmpfn
                      pngfn = File.join tmpdir, 'output.png'
                      png_image = MiniMagick::Image.new pngfn
-   
+
                      command = MiniMagick::CommandBuilder.new 'convert'
                      command.push tmp_image.path
                      command.push png_image.path
                      tmp_image.run command
-   
+
                      # "A0" => [2383.94, 3370.39],
                      pdf.start_new_page
                      pdf.bounding_box( [0, pdf.cursor], :width => 2384, :height => 3371 ) do
                         pdf.image pngfn, :fit => [2384, 3371] #TODO hardcoded remove
                         end ; end
-         
+
                rescue
                   log.e ; end ; end
-            
+
             pdf.render_file pdffn ; end
 
 =begin
@@ -162,11 +162,11 @@ module Knigodej
                ( set, chapter, glas, section ) = [ $1.to_i - 1, nil, nil, $2 ]; end
             if !set
                next; end
-      
+
 #            dir = "./share/букы/#{s[ 'наборы' ][ set ]}/#{chapter}/"
             dir = File.join path, sets[ set ].to_s, chapter.to_s
             log > { dir: dir }
-      
+
             clist = begin
                Dir.foreach( dir ).sort.map do |file|
                   if file =~ /(?:(\d)\. )?(\d?\d\d\d)\.xcf$/
@@ -178,7 +178,7 @@ module Knigodej
                {}
             end
             log >> { 'temporary list: ' => clist }
-      
+
             section.split( /,/ ).each do |sec|
                if sec =~ /(\d+)-(\d+)/
                   ($1.to_i..$2.to_i).each do |i|

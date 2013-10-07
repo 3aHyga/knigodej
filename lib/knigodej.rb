@@ -6,7 +6,7 @@ require 'prawn'
 require 'rdoba'
 
 module Knigodej
-   rdoba :log => { :functions => :basic }
+   rdoba :log => { :functions => :basic }, :slovo => true
 
    class Book
       rdoba :log => { :functions => :basic }
@@ -151,8 +151,7 @@ module Knigodej
          @subject = b[ 'предмет' ]
 
          (set, chapter, section) = [ nil, nil, nil ]
-         b[ 'страницы' ].each do |page|
-#         b[ 'страницы' ].пере(еже) do |page| TODO
+         b[ 'страницы' ].еже do |page|
             log > { page: page }
             if page =~ /(.*)\.(.*)\.(.*)\.(.*)/
                ( set, chapter, glas, section ) = [ $1.to_i - 1, $2.to_i, $3, $4 ]
@@ -179,9 +178,9 @@ module Knigodej
             end
             log >> { 'temporary list: ' => clist }
 
-            section.split( /,/ ).each do |sec|
+            section.split( /,/ ).еже do |sec|
                if sec =~ /(\d+)-(\d+)/
-                  ($1.to_i..$2.to_i).each do |i|
+                  ($1.to_i..$2.to_i).еже do |i|
                      begin
                         if clist[ [ glas, i ] ]
                               @pages << File.join( dir, clist[ [ glas, i ] ][ 1 ] ) ; end
@@ -209,7 +208,7 @@ module Knigodej
                @books.select {|b| b.name == specbook }
          if dir.empty?
             dir = './' ; end
-         books.each do |book|
+         books.еже do |book|
             log >> { book: book }
             pdffn = File.join dir, "#{book.name}.pdf"
             djvufn = File.join dir, "#{book.name}.djvu"

@@ -1,5 +1,6 @@
 # Knigodej
 
+[![Dependency Status](https://gemnasium.com/3aHyga/knigodej.png)](https://gemnasium.com/3aHyga/knigodej)
 [![Gem Version](https://badge.fury.io/rb/knigodej.png)](http://badge.fury.io/rb/knigodej)
 [![Build Status](https://travis-ci.org/3aHyga/knigodej.png?branch=master)](https://travis-ci.org/3aHyga/knigodej)
 [![Coverage Status](https://coveralls.io/repos/3aHyga/knigodej/badge.png)](https://coveralls.io/r/3aHyga/knigodej)

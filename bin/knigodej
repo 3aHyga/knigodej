@@ -46,9 +46,11 @@ settings = YAML::load( open options[ :schema ] )
 
 $stdout.puts "The script is running..."
 
-rdoba :log => { :in => Knigodej::BookShelf, :as => :log,
+rdoba :log => { :in => Knigodej,
    :prefix => [ :timestamp ], :io => io, :functions => f }
-rdoba :log => { :in => Knigodej::Book, :as => :log, :prefix => [ :timestamp ],
+rdoba :log => { :in => Knigodej::BookShelf,
+   :prefix => [ :timestamp ], :io => io, :functions => f }
+rdoba :log => { :in => Knigodej::Book, :prefix => [ :timestamp ],
    :io => io, :functions => f }
 
 Knigodej.book settings, options[ :dir ], options[ :book ],

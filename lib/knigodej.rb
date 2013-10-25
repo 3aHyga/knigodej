@@ -6,10 +6,10 @@ require 'prawn'
 require 'rdoba'
 
 module Knigodej
-   rdoba :log => { :functions => :basic }, :slovo => true
+   rdoba :log => { :functions => [ :info, :warn ] }, :slovo => true
 
    class Book
-      rdoba :log => { :functions => :basic }
+      rdoba :log => { :functions => [ :info, :warn ] }
       rdoba :mixin => [ :to_h ]
 
       attr_accessor :subject, :creator
@@ -28,7 +28,8 @@ module Knigodej
          if `which djvm`.empty?
             isdjvu = false ; end
          ispdf = pdffn
-         log > { 'will make PDF?' => !!ispdf, 'will make DJVU?' => !!isdjvu }
+         log > { 'will make PDF?' => !!ispdf, 'target PDF file' => pdffn }
+         log > { 'will make DJVU?' => !!isdjvu, 'target DJVU file' => djvufn }
 
          if isdjvu
             FileUtils.rm_f djvufn ; end
@@ -72,6 +73,7 @@ module Knigodej
                   bg_image.run command
 
                   if isdjvu
+                     log >> 'Generating DJVU page'
                      outfn = File.join tmpdir, 'output.djvu'
                      `cpaldjvu -dpi 150 -colors 4 '#{tmpfn}' '#{outfn}'`
                      if File.exist?( djvufn )
@@ -81,6 +83,7 @@ module Knigodej
 
                   if ispdf
                      # Generating the PDF
+                     log >> 'Generating PDF page'
                      tmp_image = MiniMagick::Image.open tmpfn
                      pngfn = File.join tmpdir, 'output.png'
                      png_image = MiniMagick::Image.new pngfn
@@ -197,7 +200,7 @@ module Knigodej
          log >> { 'Book pages' => @pages } ; end ; end
 
    class BookShelf
-      rdoba :log => { :functions => :basic }
+      rdoba :log => { :functions => [ :info, :warn ] }
 
       attr_reader :books
 
@@ -228,7 +231,7 @@ module Knigodej
          log >> { :@books => @books } ; end ; end
 
    def self.book settings, dir, specbook = nil, basepath = './'
-#      log + { settings: settings } TODO
+      log + { settings: settings }
       bs = BookShelf.new settings, basepath
       bs.make dir, specbook
    end ; end

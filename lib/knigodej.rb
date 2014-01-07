@@ -4,6 +4,8 @@ require "knigodej/version"
 require 'mini_magick'
 require 'prawn'
 require 'rdoba'
+require 'slavic'
+Slavic.slovo
 
 module Knigodej
    rdoba :log => { :functions => [ :info, :warn ] }, :slovo => true

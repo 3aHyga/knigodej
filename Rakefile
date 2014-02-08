@@ -8,14 +8,23 @@ end
 desc "Requires"
 task :req do
    $: << File.expand_path( '../lib', __FILE__ )
-   require 'bundler/gem_helper'
+   begin
+      require 'bundler/gem_helper'
+   rescue LoadError
+      Rake::Task[ 'bundleup' ].invoke
+   end
 
    Bundler::GemHelper.install_tasks
 end
 
 desc "Prepare bundle environment"
 task :up do
-  sh 'bundle install'
+   sh 'bundle install'
+   begin
+      require 'bundler/gem_helper'
+   rescue LoadError
+      Rake::Task[ 'bundleup' ].invoke
+   end
 end
 
 desc "Test with cucumber"

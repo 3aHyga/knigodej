@@ -1,10 +1,10 @@
 # Knigodej
 
-[![Dependency Status](https://gemnasium.com/3aHyga/knigodej.png)](https://gemnasium.com/3aHyga/knigodej)
+[![Dependency Status](https://gemnasium.com/majioa/knigodej.png)](https://gemnasium.com/majioa/knigodej)
 [![Gem Version](https://badge.fury.io/rb/knigodej.png)](http://badge.fury.io/rb/knigodej)
-[![Build Status](https://travis-ci.org/3aHyga/knigodej.png?branch=master)](https://travis-ci.org/3aHyga/knigodej)
-[![Coverage Status](https://coveralls.io/repos/3aHyga/knigodej/badge.png)](https://coveralls.io/r/3aHyga/knigodej)
-[![Endorse Count](http://api.coderwall.com/3aHyga/endorsecount.png)](http://coderwall.com/3aHyga)
+[![Build Status](https://travis-ci.org/majioa/knigodej.png?branch=master)](https://travis-ci.org/majioa/knigodej)
+[![Coverage Status](https://coveralls.io/repos/majioa/knigodej/badge.png)](https://coveralls.io/r/majioa/knigodej)
+[![Endorse Count](http://api.coderwall.com/majioa/endorsecount.png)](http://coderwall.com/majioa)
 
 Knigodej gem is a tool to make a PDF, and DJVU books from the XCF (GIMP image) source images.
 Now, only two or many layered XCF images are allowed.

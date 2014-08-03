@@ -13,7 +13,7 @@ Now, only two or many layered XCF images are allowed.
 
 Add this line to your application's Gemfile:
 
-    gem 'knigodej', :git => 'git@github.com:3aHyga/knigodej.git'
+    gem 'knigodej', :git => 'git@github.com:majioa/knigodej.git'
 
 And then execute:
 

@@ -8,6 +8,47 @@ require 'slavic'
 Slavic.slovo
 
 module Knigodej
+   module XCF
+      def self.init tmpfn, file
+         xcf_image = MiniMagick::Image.open file
+         bg_image = MiniMagick::Image.new tmpfn
+
+         command = MiniMagick::CommandBuilder.new 'convert -background'
+         command.push 'rgb(221,209,191)' #TODO make it changeable
+         command.push '-flatten'
+         command.push xcf_image.path
+         command.push bg_image.path
+         bg_image.run command ; end ; end
+
+   module DJVU
+      def self.xcf_page djvufn, tmpdir, tmpfn
+#         log >> 'Generating DJVU page'
+         outfn = File.join tmpdir, 'output.djvu'
+         `cpaldjvu -dpi 150 -colors 4 '#{tmpfn}' '#{outfn}'`
+         if File.exist?( djvufn )
+            `djvm -c '#{djvufn}' '#{djvufn}' '#{outfn}'`
+         else
+            `djvm -c '#{djvufn}' '#{outfn}'` ; end ; end ; end
+
+   module PDF
+      def self.xcf_page pdf, tmpdir, tmpfn
+         # Generating the PDF from .xcf
+#         log >> 'Generating PDF page'
+         tmp_image = MiniMagick::Image.open tmpfn
+         pngfn = File.join tmpdir, 'output.png'
+         png_image = MiniMagick::Image.new pngfn
+
+         command = MiniMagick::CommandBuilder.new 'convert'
+         command.push tmp_image.path
+         command.push png_image.path
+         tmp_image.run command
+
+         # "A0" => [2383.94, 3370.39],
+         pdf.start_new_page
+         pdf.bounding_box( [0, pdf.cursor], :width => 2384, :height => 3371 ) do
+            pdf.image pngfn, :fit => [2384, 3371] #TODO hardcoded remove
+            end ; end ; end
+
    rdoba :log => { :functions => [ :info, :warn ] }, :slovo => true
 
    class Book
@@ -64,42 +105,14 @@ module Knigodej
 
                tmpfn = File.join tmpdir, 'output.ppm'
                begin
-                  xcf_image = MiniMagick::Image.open xcf
-                  bg_image = MiniMagick::Image.new tmpfn
+                  if xcf =~ /.xcf$/i
+                     XCF.init tmpfn, xcf
 
-                  command = MiniMagick::CommandBuilder.new 'convert -background'
-                  command.push 'rgb(221,209,191)' #TODO make it changeable
-                  command.push '-flatten'
-                  command.push xcf_image.path
-                  command.push bg_image.path
-                  bg_image.run command
+                     if isdjvu
+                        DJVU.xcf_page djvufn, tmpdir, tmpfn ; end
 
-                  if isdjvu
-                     log >> 'Generating DJVU page'
-                     outfn = File.join tmpdir, 'output.djvu'
-                     `cpaldjvu -dpi 150 -colors 4 '#{tmpfn}' '#{outfn}'`
-                     if File.exist?( djvufn )
-                        `djvm -c '#{djvufn}' '#{djvufn}' '#{outfn}'`
-                     else
-                        `djvm -c '#{djvufn}' '#{outfn}'` ; end ; end
-
-                  if ispdf
-                     # Generating the PDF
-                     log >> 'Generating PDF page'
-                     tmp_image = MiniMagick::Image.open tmpfn
-                     pngfn = File.join tmpdir, 'output.png'
-                     png_image = MiniMagick::Image.new pngfn
-
-                     command = MiniMagick::CommandBuilder.new 'convert'
-                     command.push tmp_image.path
-                     command.push png_image.path
-                     tmp_image.run command
-
-                     # "A0" => [2383.94, 3370.39],
-                     pdf.start_new_page
-                     pdf.bounding_box( [0, pdf.cursor], :width => 2384, :height => 3371 ) do
-                        pdf.image pngfn, :fit => [2384, 3371] #TODO hardcoded remove
-                        end ; end
+                     if ispdf
+                        PDF.xcf_page pdf, tmpdir, tmpfn ; end ; end
 
                rescue
                   log.e ; end ; end
@@ -211,6 +224,10 @@ module Knigodej
 
          books = specbook.empty? && @books ||
                @books.select {|b| b.name == specbook }
+         if books.empty? && !@books.include?(specbook)
+            log % "Book '#{specbook}' wasn't found in the book list"
+            end
+
          if dir.empty?
             dir = './' ; end
          books.еже do |book|

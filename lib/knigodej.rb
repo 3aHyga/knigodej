@@ -5,6 +5,7 @@ require 'mini_magick'
 require 'prawn'
 require 'rdoba'
 require 'slavic'
+require 'knigodej/buka'
 Slavic.slovo
 
 module Knigodej
@@ -22,7 +23,6 @@ module Knigodej
 
    module DJVU
       def self.xcf_page djvufn, tmpdir, tmpfn
-#         log >> 'Generating DJVU page'
          outfn = File.join tmpdir, 'output.djvu'
          `cpaldjvu -dpi 150 -colors 4 '#{tmpfn}' '#{outfn}'`
          if File.exist?( djvufn )
@@ -31,9 +31,15 @@ module Knigodej
             `djvm -c '#{djvufn}' '#{outfn}'` ; end ; end ; end
 
    module PDF
+      def self.buk_page pdf, tmpdir, tmpfn, file
+         # Generating the PDF from .buk
+         pdf.start_new_page
+         buka = Buka.new pdf
+         buka.parse file
+      end
+
       def self.xcf_page pdf, tmpdir, tmpfn
          # Generating the PDF from .xcf
-#         log >> 'Generating PDF page'
          tmp_image = MiniMagick::Image.open tmpfn
          pngfn = File.join tmpdir, 'output.png'
          png_image = MiniMagick::Image.new pngfn
@@ -97,21 +103,28 @@ module Knigodej
 
          Dir.mktmpdir do |tmpdir|
             log >> { tmpdir: tmpdir }
+            log >> { 'Files to proceed' => @pages.size }
             @pages.each_index do |i|
-               xcf = @pages[ i ]
-               log * { 'Processing page' => xcf }
-
-               # 2512x3552 image size
+               file = @pages[ i ]
+               log * { 'Processing file' => file }
 
                tmpfn = File.join tmpdir, 'output.ppm'
                begin
-                  if xcf =~ /.xcf$/i
-                     XCF.init tmpfn, xcf
+                  if file =~ /.buk$/i
+                     if ispdf
+                        log >> 'Generating PDF page'
+                        PDF.buk_page pdf, tmpdir, tmpfn, file ; end
+
+                  elsif file =~ /.xcf$/i
+                     # 2512x3552 image size
+                     XCF.init tmpfn, file
 
                      if isdjvu
+                        log >> 'Generating DJVU page'
                         DJVU.xcf_page djvufn, tmpdir, tmpfn ; end
 
                      if ispdf
+                        log >> 'Generating PDF page'
                         PDF.xcf_page pdf, tmpdir, tmpfn ; end ; end
 
                rescue
@@ -186,7 +199,7 @@ module Knigodej
 
             clist = begin
                Dir.foreach( dir ).sort.map do |file|
-                  if file =~ /(?:(\d)\. )?(\d?\d\d\d)\.xcf$/
+                  if file =~ /(?:(\d)\. )?(\d?\d\d\d)\.(xcf|buk)$/i
                      [ [ $1, $2.to_i ], [ $1, file ] ]
                   end
                end.compact.to_h
@@ -197,11 +210,12 @@ module Knigodej
             log >> { 'temporary list: ' => clist }
 
             section.split( /,/ ).еже do |sec|
+               log >> { 'Search for section' => sec }
                if sec =~ /(\d+)-(\d+)/
                   ($1.to_i..$2.to_i).еже do |i|
                      begin
                         if clist[ [ glas, i ] ]
-                              @pages << File.join( dir, clist[ [ glas, i ] ][ 1 ] ) ; end
+                           @pages << File.join( dir, clist[ [ glas, i ] ][ 1 ] ) ; end
                      rescue
                         log.e
                      end

@@ -34,7 +34,7 @@ module Knigodej
       def self.buk_page pdf, tmpdir, tmpfn, file
          # Generating the PDF from .buk
          pdf.start_new_page
-         buka = Buka.new pdf
+         buka = Buka.new pdf: pdf, page_height: 3371
          buka.parse file
       end
 

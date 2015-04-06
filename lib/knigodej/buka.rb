@@ -1,4 +1,3 @@
-require 'pry'
 require 'rltk'
 
 module Knigodej
@@ -6,54 +5,62 @@ module Knigodej
       class Lexer < RLTK::Lexer
          rule( '%' ) { :CMD }
          rule( /[А-ЯЁа-яё]+/ ) { |t| [ :WORD, t ] }
-         rule( /\s+/ ) { :SPACE }
-      end
+         rule( /\s+/ ) { :SPACE } ; end
 
       class Parser < RLTK::Parser
          class Environment < Environment
-            def font_size
-               400
-            end
-
-            def font_path
-               '/usr/share//fonts/ttf/church/HirmUcs8.ttf'
-            end
-         end
+            Commands = {
+               'цс' => [ :font, :font_path, size: :font_size ],
+            } ; end
 
          list( :buka, :token, :SPACE )
 
          production( :token ) do
-            clause( 'command' ) { |c| [ :font, font_path, size: font_size ] }
-            clause( 'text' ) { |t| [ :text, t ] }
-         end
+            clause( 'command' ) { |c| Environment::Commands[ c ] }
+            clause( 'text' ) { |t| [ :text, t ] } ; end
 
          production( :command ) do
-            clause( 'CMD WORD' ) { |_, c| c }
-            clause( 'WORD' ) { |w| w }
-         end
+            clause( 'CMD WORD' ) { |_, c| c } ; end
 
          production( :text ) do
             clause( 'WORD' ) { |t| t }
-            clause( 'SPACE' ) { |s| s }
-         end
+            clause( 'SPACE' ) { |s| s } ; end
 
-         finalize
-      end
+         finalize ; end
 
       attr_reader :f
+      attr_writer :font_size
+      attr_accessor :font_path, :page_height
 
-      def initialize pdf
-         @pdf = pdf
-      end
+      def initialize params = {}
+         @font_size = '6%'
+         @font_path = '/usr/share//fonts/ttf/church/HirmUcs8.ttf'
+         params.each { |k, v| self.instance_variable_set( "@#{k}", v ) } #TODO to lib
+         end
+
+      def font_size
+         if @font_size =~ /(.*)%$/
+            if @page_height.is_a? Numeric
+               ( $1.to_f * @page_height / 100 ).to_i
+            else
+               raise "Page height wasn't defined" ; end
+         else
+            @font_size ; end ; end
+
+      def parse_eval array
+         array.map do |v|
+            case v
+            when Symbol
+               send( v )
+            when Hash
+               v.map { |(k,v)| [ k, send( v ) ] }.to_h
+            else
+               v ; end ; end ; end
 
       def parse file
          f = IO.read file
          ast = Parser.parse Lexer.lex( f.strip )
          ast.each do |tokens|
             method = tokens.shift.to_sym
-            @pdf.send method, *tokens
-         end
-      end
-   end
-end
+            @pdf.send method, *parse_eval( tokens ) ; end ; end ; end ; end
 

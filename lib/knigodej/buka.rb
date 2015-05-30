@@ -1,4 +1,7 @@
+#encoding: utf-8
+
 require 'rltk'
+require 'priehlazx'
 
 module Knigodej
    class Buka
@@ -17,7 +20,7 @@ module Knigodej
 
          production( :token ) do
             clause( 'command' ) { |c| Environment::Commands[ c ] }
-            clause( 'text' ) { |t| [ :text, t ] } ; end
+            clause( 'text' ) { |t| [ :text, [ :@plg, :go, t ] ] } ; end
 
          production( :command ) do
             clause( 'CMD WORD' ) { |_, c| c } ; end
@@ -35,6 +38,10 @@ module Knigodej
       def initialize params = {}
          @font_size = '6%'
          @font_path = '/usr/share//fonts/ttf/church/HirmUcs8.ttf'
+         @cp = 'hip'
+         @plg = Priehlazx.new
+         @plg.истокъ = 'UTF8/HIP'
+         @plg.цѣль = 'UCS8'
          params.each { |k, v| self.instance_variable_set( "@#{k}", v ) } #TODO to lib
          end
 
@@ -51,9 +58,11 @@ module Knigodej
          array.map do |v|
             case v
             when Symbol
-               send( v )
+               self.send( v )
             when Hash
                v.map { |(k,v)| [ k, send( v ) ] }.to_h
+            when Array
+               self.instance_variable_get( v[ 0 ] ).send( *v[ 1..-1 ] )
             else
                v ; end ; end ; end
 
@@ -63,4 +72,3 @@ module Knigodej
          ast.each do |tokens|
             method = tokens.shift.to_sym
             @pdf.send method, *parse_eval( tokens ) ; end ; end ; end ; end
-

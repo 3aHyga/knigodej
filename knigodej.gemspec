@@ -23,6 +23,7 @@ Gem::Specification.new do |spec|
    spec.add_runtime_dependency 'prawn', '~> 0.14'
    spec.add_runtime_dependency 'rdoba', '~> 0.9'
    spec.add_runtime_dependency 'rltk', '~> 3.0'
+   spec.add_runtime_dependency 'priehlazx', '~> 0.0'
 
    spec.add_development_dependency "bundler", "~> 1.3"
    spec.add_development_dependency "rake", '~> 0'
